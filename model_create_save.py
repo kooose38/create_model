@@ -96,8 +96,9 @@ get_images(train)
 
 pl.seed_everything(0)
 class Net(pl.LightningModule):
-  def __init__(self):
+  def __init__(self,lr=0.01):
     super(Net,self).__init__()
+    self.lr=lr
     self.conv1=nn.Conv2d(3,64,3,padding=1)
     self.conv2=nn.Conv2d(64,128,3,padding=1)
     self.conv3=nn.Conv2d(128,216,3,padding=1)
@@ -174,7 +175,7 @@ class Net(pl.LightningModule):
     return loss
 
   def configure_optimizers(self):
-    optimizer=torch.optim.SGD(self.parameters(),lr=0.01,weight_decay=0.001)
+    optimizer=torch.optim.SGD(self.parameters(),lr=self.lr,weight_decay=0.001)
     return optimizer
 #optunaによる早期終了
 def objective(trial):
