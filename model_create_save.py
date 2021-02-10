@@ -188,7 +188,11 @@ def objective(trial):
 
 sampler=optuna.samplers.TPESampler(seed=0)
 study=optuna.create_study(sampler=sampler)
-study.optimize(objective,n_train=10)
+study.optimize(objective,n_trials=10)
+
+study.best_tial,study.best_value
+#可視化
+optuna.visualization.plot_optimization(study)
                        
 trainer.test(test_dataloaders=test_loader)
 
