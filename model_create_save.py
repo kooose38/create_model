@@ -8,6 +8,7 @@ Original file is located at
 """
 
 !pip install -q  pytorch_lightning
+!pip install optuna
 import cv2 
 import torch,torchvision
 import numpy as np
@@ -21,6 +22,8 @@ import torch.nn.functional as F
 from pytorch_lightning.metrics.functional import accuracy
 from torchvision.datasets import CIFAR10
 from google.colab import files
+from pytorch_lightning.callbacks import EarlyStopping
+import optuna
 
 uploaded=files.upload()
 
@@ -93,8 +96,9 @@ get_images(train)
 
 pl.seed_everything(0)
 class Net(pl.LightningModule):
-  def __init__(self):
+  def __init__(self,lr=0.01):
     super(Net,self).__init__()
+    self.lr=lr
     self.conv1=nn.Conv2d(3,64,3,padding=1)
     self.conv2=nn.Conv2d(64,128,3,padding=1)
     self.conv3=nn.Conv2d(128,216,3,padding=1)
@@ -171,13 +175,25 @@ class Net(pl.LightningModule):
     return loss
 
   def configure_optimizers(self):
-    optimizer=torch.optim.SGD(self.parameters(),lr=0.01,weight_decay=0.001)
+    optimizer=torch.optim.SGD(self.parameters(),lr=self.lr,weight_decay=0.001)
     return optimizer
+#optunaによる早期終了
+def objective(trial):
+    lr=trial.suggest_loguniform('lr',1e-5,1e-1)
+    pl.seed_everything(0)
+    net=Net(lr=lr)
+    trainer=pl.Trainer(max_epochs=30,gpus=1,callbacks=[EalyStopping(monitor='val_acc')]
+    trainer.fit(net,trainer_loader,val_loader)
+    return trainer.callback_metrics['val_acc']
 
-net=Net()
-trainer=pl.Trainer(max_epochs=10,gpus=1)
-trainer.fit(net,train_loader,val_loader)
+sampler=optuna.samplers.TPESampler(seed=0)
+study=optuna.create_study(sampler=sampler)
+study.optimize(objective,n_trials=10)
 
+study.best_tial,study.best_value
+#可視化
+optuna.visualization.plot_optimization(study)
+                       
 trainer.test(test_dataloaders=test_loader)
 
 trainer.callback_metrics
