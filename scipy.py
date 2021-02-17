@@ -14,4 +14,4 @@ data=geom.pmf(k=k,p=1/6)
 #----------------------
 #1hourに平均scale回起こる事象が、x分までに起こる確率
 x=np.arange(1,100)
-data=expon.pdf(x=x,scale=60/10) #60分に10回起こる平均事象
+data=expon.pdf(x=x,scale=60/10) #60分に10回起こる平均事象==1分に1/6回起こる
